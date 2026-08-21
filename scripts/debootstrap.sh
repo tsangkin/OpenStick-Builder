@@ -94,7 +94,7 @@ chmod 0600 ${CHROOT}/etc/NetworkManager/system-connections/*
 mkdir -p ${CHROOT}/etc/NetworkManager/conf.d
 cat << EOF > ${CHROOT}/etc/NetworkManager/conf.d/20-uz801-wifi-powersave.conf
 [connection]
-wifi.powersave=3
+wifi.powersave=2
 EOF
 
 # enable autoconnect for usb0
