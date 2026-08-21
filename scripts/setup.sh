@@ -13,6 +13,7 @@ apt update -qqy
 apt upgrade -qqy
 apt autoremove -qqy
 apt install -qqy --no-install-recommends \
+    adbd \
     bridge-utils \
     dnsmasq \
     hostapd \
