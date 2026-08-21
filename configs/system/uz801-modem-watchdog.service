@@ -1,0 +1,8 @@
+[Unit]
+Description=UZ801 conservative modem health check
+After=ModemManager.service
+Wants=ModemManager.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/uz801-modem-watchdog
