@@ -11,6 +11,8 @@ printf 'Debian: '
 cat /etc/debian_version 2>/dev/null || true
 printf 'Hostname: '
 hostname 2>/dev/null || true
+printf 'IPv4 forwarding: '
+sysctl -n net.ipv4.ip_forward 2>/dev/null || true
 
 echo
 echo '[temperature]'
@@ -41,6 +43,16 @@ echo '[NetworkManager connections]'
 nmcli -f NAME,TYPE,DEVICE,AUTOCONNECT connection show 2>/dev/null || true
 
 echo
+echo '[USB maintenance DHCP]'
+systemctl is-active dnsmasq.service 2>/dev/null || true
+grep -v '^#' /etc/dnsmasq.d/20-uz801-usb-maintenance.conf 2>/dev/null || true
+
+echo
+echo '[ADB maintenance firewall]'
+systemctl is-active uz801-maintenance-firewall.service 2>/dev/null || true
+iptables -S INPUT 2>/dev/null | grep 5555 || true
+
+echo
 echo '[modem list]'
 mmcli -L 2>/dev/null || true
 
@@ -54,17 +66,20 @@ mmcli -m 0 --list-bearers 2>/dev/null || true
 
 echo
 echo '[services]'
-for svc in NetworkManager ModemManager simadmin usb-gadget adbd-tcp; do
-    printf '%-16s ' "$svc"
+for svc in NetworkManager ModemManager simadmin usb-gadget adbd-tcp dnsmasq uz801-maintenance-firewall; do
+    printf '%-28s ' "$svc"
     systemctl is-active "$svc.service" 2>/dev/null || true
 done
+printf '%-28s ' 'uz801-modem-watchdog.timer'
+systemctl is-active uz801-modem-watchdog.timer 2>/dev/null || true
 
 echo
-echo '[SimAdmin listening ports]'
+echo '[SimAdmin / ADB listening ports]'
 ss -lntp 2>/dev/null | grep -E 'simadmin|:80 |:3000 |:8080 |:5555 ' || true
 
 echo
-echo '[VoLTE/IMS note]'
-echo 'This image intentionally has no preconfigured Internet APN.'
-echo 'LTE registration, modem IMS/VoLTE capability and SMS are not disabled by this check.'
-echo 'Do not create a generic mobile-data connection unless testing it intentionally.'
+echo '[cellular policy]'
+echo 'Expected: Wi-Fi is the Internet/default route; usb0 is maintenance-only.'
+echo 'Expected: there is no preconfigured generic Internet APN or auto-dial LTE data profile.'
+echo 'LTE registration, SIM/SMS and modem-managed IMS/VoLTE are intentionally left enabled.'
+echo 'The modem watchdog only restarts ModemManager; it never restarts remoteproc/DSP.'
