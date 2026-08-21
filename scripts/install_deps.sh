@@ -7,6 +7,7 @@ apt install -y \
     automake \
     binfmt-support \
     cmake \
+    curl \
     debian-archive-keyring \
     debootstrap \
     device-tree-compiler \
@@ -22,4 +23,4 @@ apt install -y \
     python3-pycryptodome \
     qemu-user-static \
     unzip \
-    wget 
+    wget
