@@ -42,16 +42,51 @@ sed -i "/localhost/ s/$/ ${HOST_NAME}/" ${CHROOT}/etc/hosts
 # setup systemd services
 cp -a configs/system/* ${CHROOT}/etc/systemd/system
 mkdir -p ${CHROOT}/etc/systemd/system/multi-user.target.wants
+mkdir -p ${CHROOT}/etc/systemd/system/timers.target.wants
 
 # Keep the existing RNDIS USB gadget for the maintenance network.
 # Debian's stock adbd.service may create its own USB gadget, which would
 # conflict with usb-gadget.service, so use a dedicated TCP adbd service.
 ln -sf /dev/null ${CHROOT}/etc/systemd/system/adbd.service
 ln -sf ../adbd-tcp.service ${CHROOT}/etc/systemd/system/multi-user.target.wants/adbd-tcp.service
+ln -sf ../uz801-maintenance-firewall.service ${CHROOT}/etc/systemd/system/multi-user.target.wants/uz801-maintenance-firewall.service
 ln -sf ../simadmin.service ${CHROOT}/etc/systemd/system/multi-user.target.wants/simadmin.service
+ln -sf ../uz801-modem-watchdog.timer ${CHROOT}/etc/systemd/system/timers.target.wants/uz801-modem-watchdog.timer
+
+# dnsmasq is used only to hand out an address on usb0; no DNS proxy, NAT or
+# default gateway is offered to the maintenance PC.
+mkdir -p ${CHROOT}/etc/dnsmasq.d
+cat << EOF > ${CHROOT}/etc/dnsmasq.d/20-uz801-usb-maintenance.conf
+port=0
+interface=usb0
+bind-dynamic
+dhcp-range=192.168.5.2,192.168.5.20,255.255.255.0,12h
+dhcp-option=3
+dhcp-option=6
+dhcp-authoritative
+EOF
+ln -sf /lib/systemd/system/dnsmasq.service ${CHROOT}/etc/systemd/system/multi-user.target.wants/dnsmasq.service
+
+# This appliance must never act as a router. Disabling host forwarding does
+# not disable modem registration, SMS, IMS or VoLTE inside the modem stack.
+mkdir -p ${CHROOT}/etc/sysctl.d
+cat << EOF > ${CHROOT}/etc/sysctl.d/20-uz801-appliance.conf
+net.ipv4.ip_forward=0
+net.ipv6.conf.all.forwarding=0
+EOF
+
+# Give ModemManager a lightweight systemd-level recovery policy. The separate
+# watchdog also only restarts ModemManager; it never touches modem remoteproc.
+mkdir -p ${CHROOT}/etc/systemd/system/ModemManager.service.d
+cat << EOF > ${CHROOT}/etc/systemd/system/ModemManager.service.d/20-uz801-restart.conf
+[Service]
+Restart=on-failure
+RestartSec=5s
+EOF
 
 cp -a scripts/msm-firmware-loader.sh ${CHROOT}/usr/sbin
 install -m 0755 scripts/uz801-healthcheck.sh ${CHROOT}/usr/local/sbin/uz801-healthcheck
+install -m 0755 scripts/uz801-modem-watchdog.sh ${CHROOT}/usr/local/sbin/uz801-modem-watchdog
 
 # setup NetworkManager
 # Only USB maintenance networking is preconfigured. No generic LTE Internet
@@ -59,7 +94,6 @@ install -m 0755 scripts/uz801-healthcheck.sh ${CHROOT}/usr/local/sbin/uz801-heal
 # This does not disable modem registration, SIM/SMS access, or modem-managed IMS/VoLTE.
 cp configs/*.nmconnection ${CHROOT}/etc/NetworkManager/system-connections
 chmod 0600 ${CHROOT}/etc/NetworkManager/system-connections/*
-sed -i '/\[main\]/a dns=dnsmasq' ${CHROOT}/etc/NetworkManager/NetworkManager.conf
 mkdir -p ${CHROOT}/etc/NetworkManager/conf.d
 cat << EOF > ${CHROOT}/etc/NetworkManager/conf.d/20-uz801-wifi-powersave.conf
 [connection]
