@@ -1,0 +1,13 @@
+[Unit]
+Description=Restrict ADB to the USB maintenance interface
+After=network-pre.target
+Before=adbd-tcp.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/sh -c '/usr/sbin/iptables -C INPUT -i usb0 -p tcp --dport 5555 -j ACCEPT 2>/dev/null || /usr/sbin/iptables -I INPUT 1 -i usb0 -p tcp --dport 5555 -j ACCEPT; /usr/sbin/iptables -C INPUT -p tcp --dport 5555 -j REJECT 2>/dev/null || /usr/sbin/iptables -I INPUT 2 -p tcp --dport 5555 -j REJECT'
+ExecStop=/bin/sh -c '/usr/sbin/iptables -D INPUT -p tcp --dport 5555 -j REJECT 2>/dev/null || true; /usr/sbin/iptables -D INPUT -i usb0 -p tcp --dport 5555 -j ACCEPT 2>/dev/null || true'
+
+[Install]
+WantedBy=multi-user.target
