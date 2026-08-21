@@ -42,7 +42,6 @@ sed -i "/localhost/ s/$/ ${HOST_NAME}/" ${CHROOT}/etc/hosts
 # setup systemd services
 cp -a configs/system/* ${CHROOT}/etc/systemd/system
 mkdir -p ${CHROOT}/etc/systemd/system/multi-user.target.wants
-mkdir -p ${CHROOT}/etc/systemd/system/timers.target.wants
 
 # Keep the existing RNDIS USB gadget for the maintenance network.
 # Debian's stock adbd.service may create its own USB gadget, which would
@@ -51,7 +50,6 @@ ln -sf /dev/null ${CHROOT}/etc/systemd/system/adbd.service
 ln -sf ../adbd-tcp.service ${CHROOT}/etc/systemd/system/multi-user.target.wants/adbd-tcp.service
 ln -sf ../uz801-maintenance-firewall.service ${CHROOT}/etc/systemd/system/multi-user.target.wants/uz801-maintenance-firewall.service
 ln -sf ../simadmin.service ${CHROOT}/etc/systemd/system/multi-user.target.wants/simadmin.service
-ln -sf ../uz801-modem-watchdog.timer ${CHROOT}/etc/systemd/system/timers.target.wants/uz801-modem-watchdog.timer
 
 # dnsmasq is used only to hand out an address on usb0; no DNS proxy, NAT or
 # default gateway is offered to the maintenance PC.
@@ -75,8 +73,8 @@ net.ipv4.ip_forward=0
 net.ipv6.conf.all.forwarding=0
 EOF
 
-# Give ModemManager a lightweight systemd-level recovery policy. The separate
-# watchdog also only restarts ModemManager; it never touches modem remoteproc.
+# Give ModemManager a lightweight systemd-level recovery policy. SimAdmin has
+# its own modem health/recovery logic, so no second periodic watchdog is added.
 mkdir -p ${CHROOT}/etc/systemd/system/ModemManager.service.d
 cat << EOF > ${CHROOT}/etc/systemd/system/ModemManager.service.d/20-uz801-restart.conf
 [Service]
@@ -86,7 +84,6 @@ EOF
 
 cp -a scripts/msm-firmware-loader.sh ${CHROOT}/usr/sbin
 install -m 0755 scripts/uz801-healthcheck.sh ${CHROOT}/usr/local/sbin/uz801-healthcheck
-install -m 0755 scripts/uz801-modem-watchdog.sh ${CHROOT}/usr/local/sbin/uz801-modem-watchdog
 
 # setup NetworkManager
 # Only USB maintenance networking is preconfigured. No generic LTE Internet
