@@ -42,6 +42,13 @@ sed -i "/localhost/ s/$/ ${HOST_NAME}/" ${CHROOT}/etc/hosts
 # setup systemd services
 cp -a configs/system/* ${CHROOT}/etc/systemd/system
 
+# Keep the existing RNDIS USB gadget for the maintenance network.
+# Debian's stock adbd.service may create its own USB gadget, which would
+# conflict with usb-gadget.service, so use a dedicated TCP adbd service.
+ln -sf /dev/null ${CHROOT}/etc/systemd/system/adbd.service
+mkdir -p ${CHROOT}/etc/systemd/system/multi-user.target.wants
+ln -sf ../adbd-tcp.service ${CHROOT}/etc/systemd/system/multi-user.target.wants/adbd-tcp.service
+
 cp -a scripts/msm-firmware-loader.sh ${CHROOT}/usr/sbin
 
 # setup NetworkManager
