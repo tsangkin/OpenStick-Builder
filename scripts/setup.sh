@@ -13,22 +13,32 @@ apt update -qqy
 apt upgrade -qqy
 apt autoremove -qqy
 apt install -qqy --no-install-recommends \
-    bridge-utils \
+    adbd \
+    ca-certificates \
+    curl \
+    dbus \
     dnsmasq \
-    hostapd \
+    iproute2 \
     iptables \
+    libmbim-utils \
+    libpcsclite1 \
+    libqmi-utils \
     locales \
+    lm-sensors \
     modemmanager \
     netcat-traditional \
     net-tools \
     network-manager \
     openssh-server \
+    procps \
     qrtr-tools \
     rmtfs \
     sudo \
     systemd-timesyncd \
+    tar \
     tzdata \
-    wireguard-tools \
+    udev \
+    unzip \
     wpasupplicant
 apt clean
 rm -rf /var/lib/apt/lists/*

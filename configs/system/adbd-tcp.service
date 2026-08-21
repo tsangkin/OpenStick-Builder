@@ -1,0 +1,15 @@
+[Unit]
+Description=ADB daemon over USB maintenance network
+After=usb-gadget.service uz801-maintenance-firewall.service
+Wants=usb-gadget.service
+Requires=uz801-maintenance-firewall.service
+
+[Service]
+Type=simple
+Environment=ADBD_PORT=5555
+ExecStart=/usr/sbin/adbd
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
