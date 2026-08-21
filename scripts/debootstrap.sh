@@ -51,8 +51,12 @@ ln -sf ../adbd-tcp.service ${CHROOT}/etc/systemd/system/multi-user.target.wants/
 ln -sf ../simadmin.service ${CHROOT}/etc/systemd/system/multi-user.target.wants/simadmin.service
 
 cp -a scripts/msm-firmware-loader.sh ${CHROOT}/usr/sbin
+install -m 0755 scripts/uz801-healthcheck.sh ${CHROOT}/usr/local/sbin/uz801-healthcheck
 
 # setup NetworkManager
+# Only USB maintenance networking is preconfigured. No generic LTE Internet
+# connection/APN is installed, so NetworkManager will not auto-dial mobile data.
+# This does not disable modem registration, SIM/SMS access, or modem-managed IMS/VoLTE.
 cp configs/*.nmconnection ${CHROOT}/etc/NetworkManager/system-connections
 chmod 0600 ${CHROOT}/etc/NetworkManager/system-connections/*
 sed -i '/\[main\]/a dns=dnsmasq' ${CHROOT}/etc/NetworkManager/NetworkManager.conf
