@@ -14,9 +14,7 @@ apt upgrade -qqy
 apt autoremove -qqy
 apt install -qqy --no-install-recommends \
     adbd \
-    bridge-utils \
     dnsmasq \
-    hostapd \
     iptables \
     locales \
     modemmanager \
@@ -29,7 +27,6 @@ apt install -qqy --no-install-recommends \
     sudo \
     systemd-timesyncd \
     tzdata \
-    wireguard-tools \
     wpasupplicant
 apt clean
 rm -rf /var/lib/apt/lists/*
