@@ -14,19 +14,31 @@ apt upgrade -qqy
 apt autoremove -qqy
 apt install -qqy --no-install-recommends \
     adbd \
+    ca-certificates \
+    curl \
+    dbus \
     dnsmasq \
+    iproute2 \
     iptables \
+    libmbim-utils \
+    libpcsclite1 \
+    libqmi-utils \
     locales \
+    lm-sensors \
     modemmanager \
     netcat-traditional \
     net-tools \
     network-manager \
     openssh-server \
+    procps \
     qrtr-tools \
     rmtfs \
     sudo \
     systemd-timesyncd \
+    tar \
     tzdata \
+    udev \
+    unzip \
     wpasupplicant
 apt clean
 rm -rf /var/lib/apt/lists/*
