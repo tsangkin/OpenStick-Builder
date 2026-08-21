@@ -70,8 +70,6 @@ for svc in NetworkManager ModemManager simadmin usb-gadget adbd-tcp dnsmasq uz80
     printf '%-28s ' "$svc"
     systemctl is-active "$svc.service" 2>/dev/null || true
 done
-printf '%-28s ' 'uz801-modem-watchdog.timer'
-systemctl is-active uz801-modem-watchdog.timer 2>/dev/null || true
 
 echo
 echo '[SimAdmin / ADB listening ports]'
@@ -82,4 +80,5 @@ echo '[cellular policy]'
 echo 'Expected: Wi-Fi is the Internet/default route; usb0 is maintenance-only.'
 echo 'Expected: there is no preconfigured generic Internet APN or auto-dial LTE data profile.'
 echo 'LTE registration, SIM/SMS and modem-managed IMS/VoLTE are intentionally left enabled.'
-echo 'The modem watchdog only restarts ModemManager; it never restarts remoteproc/DSP.'
+echo 'ModemManager has systemd crash recovery; SimAdmin provides modem health recovery.'
+echo 'No custom timer restarts modem remoteproc/DSP.'
